@@ -1,0 +1,27 @@
+<html>
+<head>
+ <title>Deploy Ml model</title>
+</head>
+<body>
+ <form action="predict" method="post">
+ {% csrf_token %}
+ <span class="label-input100">Name :</span>
+ <input class="input100" type="text" name="name" placeholder="Enter Item name"><br><br>
+ <span class="label-input100">Item description :</span>
+ <input class="input100" type="text" name="item_description" placeholder="Enter Item description"><br><br>
+ <span class="label-input100">Item condition :</span>
+ <input class="input100" type="text" name="item_condition_id" placeholder="Enter value [1-5]; 1=New, 5=Poor"><br><br>
+ <span class="label-input100">Main category :</span>
+ <input class="input100" type="text" name="main_category" placeholder="Enter Main category"><br><br>
+ <span class="label-input100">Sub_1 category :</span>
+ <input class="input100" type="text" name="sub1_category" placeholder="Enter Sub_1 category"><br><br>
+ <span class="label-input100">Sub_2 category :</span>
+ <input class="input100" type="text" name="sub2_category" placeholder="Enter Sub_2 category"><br><br>
+ <span class="label-input100">Brand name :</span>
+ <input class="input100" type="text" name="brand_name" placeholder="Enter Brand name"><br><br>
+ <span class="label-input100">Shipping :</span>
+ <input class="input100" type="text" name="shipping" placeholder="Enter Shipping"><br><br>
+ <button class="contact100-form-btn">Submit</button>
+ </form>
+</body>
+</html>

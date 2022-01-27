@@ -11,71 +11,6 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras import layers, Model
 import joblib
-
-class Transformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
-        return self
-    
-    
-class ItemSelector(Transformer):
-    def __init__(self, field, fillna_value=None):
-        self.field = field
-        self.fillna_value = fillna_value
-    
-    def transform(self, df):
-        if self.fillna_value:
-            return df[self.field].fillna(self.fillna_value)
-        
-        return df[self.field]
-    
-    
-class SubCategorySpliter(Transformer):
-    def __init__(self, delimiter='/', nth_split=0):
-        self.delimiter = delimiter
-        self.nth_split = nth_split
-        
-    def transform(self, series):
-        return series.apply(lambda x: x.split(self.delimiter)[self.nth_split])
-    
-    
-class SeriesToArray(Transformer):
-    def __init__(self, shape=(-1, 1)):
-        self.shape = shape
-        
-    def transform(self, series):
-        return series.values.reshape(self.shape)
-    
-    
-class TextToSeq(Transformer):
-    def __init__(
-        self,
-        num_words=None,
-        filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n',
-        lower=True,
-        maxlen=100,
-        sparse=True,
-        dtype=np.uint32
-    ):
-        self.num_words = num_words
-        self.filters = filters
-        self.lower = lower
-        self.maxlen = maxlen
-        self.sparse = sparse
-        self.dtype = dtype
-        
-    def fit(self, series, y=None):
-        self.tokenizer = Tokenizer(num_words=self.num_words, filters=self.filters, lower=self.lower)
-        self.tokenizer.fit_on_texts(series)
-        
-        return self
-        
-    def transform(self, series):
-        seqs = self.tokenizer.texts_to_sequences(series)
-        pad_seqs = pad_sequences(seqs, maxlen=self.maxlen, dtype=self.dtype)
-        if self.sparse:
-            pad_seqs = csr_matrix(pad_seqs)
-        
-        return pad_seqs
         
 
 class TransformerBlock(layers.Layer):
@@ -135,10 +70,10 @@ def get_model(seq_1_len, seq_2_len, feats_len, seq_1_max, seq_2_max, out_min_val
     
     return model
 
-MODEL_PATH = './dmodels/'
+MODEL_PATH = '../../models/'
 MAX_SEQ_LEN_NAME = 20
-MAX_SEQ_LEN_DESC = 64
-FEATS_LEN = 5519
+MAX_SEQ_LEN_DESC = 68
+FEATS_LEN = 5249
 MAX_NUM_WORDS_NAME = 40000
 MAX_NUM_WORDS_DESC = 80000
 PIPES = joblib.load(MODEL_PATH+ 'pipes.pkl')
@@ -169,6 +104,10 @@ def predict(request):
         temp['shipping'] = str(request.POST.get('shipping'))
         
         sub_df = pd.DataFrame({'0': temp}).transpose()
+        sub_df['shipping'] = sub_df['shipping'].map({0: 'Free shipping', 1: 'Shipping fees'})
+        sub_df['item_condition_id'] = sub_df['item_condition_id'].map(
+            {1: 'New', 2: 'Like new', 3: 'Good', 4: 'Fair', 5: 'Poor'})
+
         sub_pp = [pipe.transform(sub_df) for pipe in PIPES]
         sub_pred = np.expm1(MODEL.predict(sub_pp))
         
